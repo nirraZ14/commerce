@@ -1,0 +1,87 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+     {% if not listingData.isActive and user == listing.price.user %}
+     <div class="alert alert-success" role="alert">
+      Congratulations! You have won the auction
+     </div>
+     {% endif %}
+     {% if updated %}
+     <div class="alert alert-success" role="alert">
+      {{ message }}
+     </div>
+     {% else %}
+     <div class="alert alert-danger" role="alert">
+      {{ message }}
+     </div>
+     {% endif %}
+    <h2>Active Listings: {{ listing.title }}</h2>
+    {%if user.is_authenticated %}
+    {% if isAdmin %}
+    <form action="{% url 'close' id=listing.id %}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Close Auction </button>
+    </form>
+    {% endif %}
+    {% if user != listing.owner %}
+    {% if listingInWatchlist %}
+    <form action="{% url 'remove' id=listing.id %}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Remove from watchlist </button>
+    </form>
+    {% else %}
+    <form action="{% url 'add' id=listing.id  %}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">Add to watchlist </button>
+    </form>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+  
+    <img src="{{ listing.imageUrl }}" alt="{{ listing.title }}" height="400px">
+    <h4>${{ listing.price.bid }}</h4>
+    
+    {%if user.is_authenticated %}
+    {% if not listingData.isActive %}
+    <div class="alert alert-danger" role="alert">
+      The bidding is closed by the owner
+    </div>
+    {% else %}
+    <form action="{% url 'addBid' id=listing.id %}" method="POST">
+      
+      {% csrf_token %}
+      <div class="form-group">
+        <input type="number" min="0" class="form-control" name="newBid"  placeholder="Add Bid">
+        <button type="submit" class="btn btn-danger">Post</button>
+      </div>
+      
+    </form>
+    {% endif %}
+    {% endif %}
+    <h3>Description</h3>
+    <p>{{ listing.description }}</p>
+    <h3>Details</h3>
+    <ul>
+      <li>Listed by {{ listing.owner }}</li>
+      <li>Category: {{ listing.category }}</li>
+    </ul>
+    {% if user.is_authenticated %}
+    <form action="{% url 'addComment' id=listing.id %}" method="POST">
+      
+      {% csrf_token %}
+      <div class="form-group">
+        <input type="text" class="form-control" name="newComment"  placeholder="Add Comment">
+        <button type="submit" class="btn btn-danger">Post</button>
+      </div>
+      
+    </form>
+    <ul class="list-group">
+      {% for comment in allcomments %}
+      <li class="list-group-item">{{ comment }}
+      </br>
+      Posted by <strong>{{ comment.author }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %}
